@@ -107,43 +107,6 @@ app.get("/products", async (req, res) => {
   }
 });
 
-
-// =============== (Consider placing within an initializeDatabase function) ================= 
-
-async function getPosts() {
-  for (let i = 0; i < data.length; i++) {
-    const product = new Transaction({
-      id: data[i].id,
-      title: data[i].title,
-      price: data[i].price,
-      description: data[i].description,
-      category: data[i].category,
-      image: data[i].image,
-      sold: data[i].sold,
-      dateOfSale: data[i].dateOfSale, 
-    });
-    try {
-      const savedProduct = await product.save(); 
-      console.log(savedProduct); 
-    } catch (err) {
-      console.log(err); 
-    }
-  }
-}
-
-// =============== API Routes =================
-
-// Fetch all products
-app.get('/products', async (req, res) => { 
-  try {
-    const products = await Transaction.find(); 
-    res.send(products);
-  } catch (err) {
-    console.error('Error fetching products:', err);
-    res.status(500).send('Server error');
-  }
-});
-
 // Calculate sales statistics for a given month
 app.get("/salesMonth", async (req, res) => {
   const map1 = new Map();
@@ -260,7 +223,6 @@ app.get("/pieChart", async (req, res) => {
   map1.set("December", "12");
   var search = req.query.keyword;
   search.toString();
-  
 
   const map2 = new Map();
   for (let i = 0; i < data.length; i++) {
@@ -293,7 +255,6 @@ app.get("/pieChart", async (req, res) => {
     res.write(key + " category: " + value + `<br/>`);
   }
 });
-
 
 // =============== Start Server =================
 const port = 3000;
