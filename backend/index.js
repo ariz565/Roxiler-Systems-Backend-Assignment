@@ -71,41 +71,6 @@ const transactionSchema = new mongoose.Schema({
 
 const Transaction = mongoose.model("Transaction", transactionSchema);
 
-// =============== (Consider placing within an initializeDatabase function) =================
-
-async function getPosts() {
-  for (let i = 0; i < data.length; i++) {
-    const product = new Transaction({
-      id: data[i].id,
-      title: data[i].title,
-      price: data[i].price,
-      description: data[i].description,
-      category: data[i].category,
-      image: data[i].image,
-      sold: data[i].sold,
-      dateOfSale: data[i].dateOfSale,
-    });
-    try {
-      const savedProduct = await product.save();
-      console.log(savedProduct);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-}
-
-// =============== API Routes =================
-
-// Fetch all products
-app.get("/products", async (req, res) => {
-  try {
-    const products = await Transaction.find();
-    res.send(products);
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    res.status(500).send("Server error");
-  }
-});
 
 
 // =============== (Consider placing within an initializeDatabase function) ================= 
