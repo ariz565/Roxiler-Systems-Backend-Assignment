@@ -200,6 +200,7 @@ app.get("/pieChart", async (req, res) => {
       map2.set(category, 0);
     }
   }
+  
   for (let i = 0; i < data.length; i++) {
     let originalString = data[i].dateOfSale;
     originalString.toString();
