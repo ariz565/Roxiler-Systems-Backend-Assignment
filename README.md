@@ -6,7 +6,7 @@ This backend provides APIs to fetch, initialize, analyze, and visualize product 
 
 ## Data Source
 
-* **API URL:** https://s3.amazonaws.com/roxiler.com/product_transaction.json
+* **API URL:** 
 * **Request Method:** GET
 * **Response Format:** JSON
 
