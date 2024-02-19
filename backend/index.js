@@ -1,29 +1,43 @@
-import fetch from "node-fetch";
-import express from "express";
-import bodyparser from "body-parser";
-import cors from "cors";
-import mongoose from "mongoose";
+// =============== Imports =================
 
-mongoose.connect("mongodb://localhost:27017/assessment", {
-  useNewUrlParser: true,
-});
-const connection = mongoose.connection;
-connection.once("open", function () {
+import fetch from "node-fetch"; // Library for making HTTP requests to fetch external data
+import express from "express"; // Web framework for creating Node.js servers
+import bodyparser from "body-parser"; // Middleware to parse incoming request bodies
+import cors from "cors"; // Middleware for enabling cross-origin requests (CORS)
+import mongoose from "mongoose"; // Object Data Modeling (ODM) library for MongoDB
+
+// =============== MongoDB Connection =================
+
+const connectionString = "mongodb://localhost:27017/assessment"; // Connection string to the MongoDB database
+mongoose
+  .connect(connectionString, { useNewUrlParser: true })
+  .then(() =>
+    console.log("MongoDB database connection established successfully")
+  )
+  .catch((err) => console.error("Database connection error:", err));
+
+const connection = mongoose.connection; // Get a reference to the underlying connection
+connection.once("open", () => {
   console.log("MongoDB database connection established successfully");
 });
 
+// =============== Express App Setup =================
+
 const app = express();
-app.use(bodyparser.json());
-app.use(bodyparser.urlencoded({ extended: false }));
-app.use(cors());
+app.use(bodyparser.json()); // Parse incoming JSON request bodies
+app.use(bodyparser.urlencoded({ extended: false })); // Parse URL-encoded form data
+app.use(cors()); // Enable CORS to allow requests from other domains
+
+// =============== Data Fetching (Ideally in a separate initialization routine) =================
 
 const response = await fetch(
   "https://s3.amazonaws.com/roxiler.com/product_transaction.json"
 );
 const data = await response.json();
-//console.log(data);
 
-const transaction = new mongoose.Schema({
+// =============== Mongoose Schema =================
+
+const transactionSchema = new mongoose.Schema({
   id: {
     type: Number,
     required: true,
@@ -54,7 +68,10 @@ const transaction = new mongoose.Schema({
     type: Date,
   },
 });
-const Transaction = mongoose.model("Transaction", transaction);
+
+const Transaction = mongoose.model("Transaction", transactionSchema);
+
+// =============== (Consider placing within an initializeDatabase function) =================
 
 async function getPosts() {
   for (let i = 0; i < data.length; i++) {
@@ -76,12 +93,130 @@ async function getPosts() {
     }
   }
 }
+
+// =============== API Routes =================
+
+// Fetch all products
 app.get("/products", async (req, res) => {
-  const products = await Transaction.find();
-  res.send(products);
+  try {
+    const products = await Transaction.find();
+    res.send(products);
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).send("Server error");
+  }
 });
 
 // Task 2
+
+Excellent! Let's add comments to explain the different parts of your code for clarity and maintainability. Here's a revised version with comments incorporated:
+
+JavaScript
+// =============== Imports =================
+
+import fetch from 'node-fetch'; // Library for making HTTP requests to fetch external data
+import express from 'express'; // Web framework for creating Node.js servers
+import bodyparser from 'body-parser'; // Middleware to parse incoming request bodies
+import cors from 'cors'; // Middleware for enabling cross-origin requests (CORS)
+import mongoose from 'mongoose'; // Object Data Modeling (ODM) library for MongoDB
+
+// =============== MongoDB Connection =================
+
+const connectionString = 'mongodb://localhost:27017/assessment'; // Connection string to the MongoDB database
+mongoose.connect(connectionString, { useNewUrlParser: true }) 
+  .then(() => console.log("MongoDB database connection established successfully"))
+  .catch(err => console.error("Database connection error:", err));
+
+const connection = mongoose.connection; // Get a reference to the underlying connection 
+connection.once('open', () => { 
+  console.log("MongoDB database connection established successfully");
+});
+
+// =============== Express App Setup =================
+
+const app = express(); 
+app.use(bodyparser.json()); // Parse incoming JSON request bodies
+app.use(bodyparser.urlencoded({ extended: false })); // Parse URL-encoded form data
+app.use(cors()); // Enable CORS to allow requests from other domains
+
+// =============== Data Fetching (Ideally in a separate initialization routine) =================
+
+const response = await fetch('https://s3.amazonaws.com/roxiler.com/product_transaction.json');
+const data = await response.json(); 
+
+// =============== Mongoose Schema =================
+
+const transactionSchema = new mongoose.Schema({
+  id: {
+    type: Number,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  description: {
+    type: String,
+  },
+  category: {
+    type: String,
+    required: true,
+  },
+  image: {
+    type: String,
+  },
+  sold: {
+    type: Boolean,
+    default: false,
+  },
+  dateOfSale: {
+    type: Date,
+  },
+});
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+// =============== (Consider placing within an initializeDatabase function) ================= 
+
+async function getPosts() {
+  for (let i = 0; i < data.length; i++) {
+    const product = new Transaction({
+      id: data[i].id,
+      title: data[i].title,
+      price: data[i].price,
+      description: data[i].description,
+      category: data[i].category,
+      image: data[i].image,
+      sold: data[i].sold,
+      dateOfSale: data[i].dateOfSale, 
+    });
+    try {
+      const savedProduct = await product.save(); 
+      console.log(savedProduct); 
+    } catch (err) {
+      console.log(err); 
+    }
+  }
+}
+
+// =============== API Routes =================
+
+// Fetch all products
+app.get('/products', async (req, res) => { 
+  try {
+    const products = await Transaction.find(); 
+    res.send(products);
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    res.status(500).send('Server error');
+  }
+});
+
+// Calculate sales statistics for a given month
 app.get("/salesMonth", async (req, res) => {
   const map1 = new Map();
   map1.set("January", "01");
@@ -121,6 +256,7 @@ app.get("/salesMonth", async (req, res) => {
 });
 
 //Task 3
+// Generate data for a bar chart (price range vs. number of items)
 app.get("/barChart", (req, res) => {
   const map1 = new Map();
   map1.set("January", "01");
@@ -174,11 +310,11 @@ app.get("/barChart", (req, res) => {
   );
   for (let [key, value] of map2) {
     res.write("< " + key + " = " + value + `<br/>`);
-    //console.log("<" + key + "=" + value);
   }
 });
 
 //Task 4
+// Generate data for a pie chart (categories vs. number of items)
 
 app.get("/pieChart", async (req, res) => {
   const map1 = new Map();
@@ -196,8 +332,7 @@ app.get("/pieChart", async (req, res) => {
   map1.set("December", "12");
   var search = req.query.keyword;
   search.toString();
-  // console.log(search);
-  // console.log(map1.get(search)); // getting Month Number
+  
 
   const map2 = new Map();
   for (let i = 0; i < data.length; i++) {
@@ -228,10 +363,11 @@ app.get("/pieChart", async (req, res) => {
   );
   for (let [key, value] of map2) {
     res.write(key + " category: " + value + `<br/>`);
-    // console.log(key + " category = " + value);
   }
 });
 
+
+// =============== Start Server =================
 const port = 3000;
 app.listen(port, () =>
   console.log(`Hello world app listening on port ${port}!`)
